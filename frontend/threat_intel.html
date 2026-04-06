@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Threat Intel - AI Insider Threat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .intel-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+        .feed-item {
+            padding: 16px;
+            border-bottom: var(--glass-border);
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+        .feed-item:last-child {
+            border-bottom: none;
+        }
+        .feed-time {
+            font-size: 12px;
+            color: var(--text-secondary);
+            min-width: 80px;
+        }
+        .feed-content h4 {
+            font-size: 15px;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+        .feed-content p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.1);
+            margin-top: 8px;
+            margin-right: 6px;
+        }
+        .tag.critical { background: var(--danger-glow); color: var(--danger); }
+        .tag.warning { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        
+        /* Actor Profile styling */
+        .actor-profile {
+            text-align: center;
+            padding: 20px 0;
+        }
+        .actor-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: var(--accent-color);
+            margin-bottom: 16px;
+            border: 2px solid var(--accent-color);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+        .actor-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 24px;
+            border-top: var(--glass-border);
+            padding-top: 20px;
+        }
+        .stat-box {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .stat-box span { font-size: 11px; color: var(--text-secondary); text-transform: uppercase;}
+        .stat-box strong { font-size: 20px; color: var(--text-primary); }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fa-solid fa-shield-halved"></i>
+                <h2>Simran<span class="highlight">AI</span></h2>
+            </div>
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-item"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+                <a href="upload.html" class="nav-item"><i class="fa-solid fa-file-csv"></i> Upload Data</a>
+                <a href="threat_intel.html" class="nav-item active"><i class="fa-solid fa-user-secret"></i> Threat Intel</a>
+                <a href="relationships.html" class="nav-item"><i class="fa-solid fa-network-wired"></i> Relationships</a>
+                <a href="settings.html" class="nav-item"><i class="fa-solid fa-gear"></i> Settings</a>
+            </nav>
+            <div class="controls">
+                <button class="btn-primary" onclick="window.location.href='index.html'">
+                    <i class="fa-solid fa-arrow-left"></i> Dashboard
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <button class="hamburger" id="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('active')">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="header-titles">
+                    <h1>Threat Intelligence</h1>
+                    <p>Global indicators of compromise and insider threat profiles</p>
+                </div>
+                <div class="user-profile">
+                    <a href="profile.html">
+                        <img src="https://ui-avatars.com/api/?name=Admin+User&background=0D8ABC&color=fff" alt="Profile" class="avatar" id="global-avatar">
+                    </a>
+                </div>
+            </header>
+
+            <section class="intel-grid">
+                <!-- Threat Feed Panel -->
+                <div class="panel list-panel">
+                    <div class="panel-header">
+                        <h2><i class="fa-solid fa-satellite-dish"></i> Live Threat Feed</h2>
+                        <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">Updating Live</span>
+                    </div>
+                    <div class="feed-container" id="intel-feed">
+                        <!-- Dynamic feed items will be injected here -->
+                    </div>
+                </div>
+
+                <!-- Active Threat Actors Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2><i class="fa-solid fa-mask"></i> Tracked Internal Profiles</h2>
+                    </div>
+                    <div id="intel-profiles">
+                        <!-- Dynamic actor profiles will be injected here -->
+                    </div>
+
+                </div>
+            </section>
+        </main>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedName = localStorage.getItem('userName');
+            if (savedName) {
+                const globalAvatar = document.getElementById('global-avatar');
+                if (globalAvatar) {
+                    globalAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(savedName)}&background=0D8ABC&color=fff`;
+                }
+            }
+            
+            async function fetchIntel() {
+                try {
+                    const response = await fetch('http://localhost:8000/api/anomalies');
+                    const data = await response.json();
+                    const anomalies = data.anomalies || [];
+                    
+                    const feedContainer = document.getElementById('intel-feed');
+                    const profilesContainer = document.getElementById('intel-profiles');
+                    
+                    if (anomalies.length === 0) {
+                        feedContainer.innerHTML = '<div style="padding: 24px; color: var(--text-secondary); text-align: center;">System monitoring active. No critical threats detected yet.</div>';
+                        profilesContainer.innerHTML = '<div style="padding: 24px; color: var(--text-secondary); text-align: center;">No internal profiles currently flagged.</div>';
+                        return;
+                    }
+                    
+                    // Populate Feed (Most recent 10 anomalies)
+                    feedContainer.innerHTML = '';
+                    const recentAnomalies = [...anomalies].reverse().slice(0, 10);
+                    recentAnomalies.forEach(anomaly => {
+                        const timeStr = new Date(anomaly.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        const rs = (anomaly.risk_score * 100).toFixed(1);
+                        const isCritical = anomaly.risk_score >= 0.8;
+                        const tagClass = isCritical ? 'critical' : 'warning';
+                        const tagText = isCritical ? 'Critical Alert' : 'High Risk';
+                        
+                        feedContainer.innerHTML += `
+                            <div class="feed-item">
+                                <div class="feed-time">${timeStr}</div>
+                                <div class="feed-content">
+                                    <h4>Profile Alert: "${anomaly.user}"</h4>
+                                    <p>Suspicious activity detected. Details: <strong>${anomaly.details}</strong>. The Isolation Forest and Autoencoder models scored this event risk at ${rs}% confidence.</p>
+                                    <span class="tag ${tagClass}">${tagText}</span>
+                                    <span class="tag">${anomaly.event_type.toUpperCase()}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    // Populate Profiles (Group by User)
+                    const userScores = {};
+                    anomalies.forEach(a => {
+                        if (!userScores[a.user] || a.risk_score > userScores[a.user]) {
+                            userScores[a.user] = a.risk_score;
+                        }
+                    });
+                    
+                    profilesContainer.innerHTML = '';
+                    let profileCount = 0;
+                    Object.entries(userScores).sort((a,b) => b[1] - a[1]).slice(0, 5).forEach(([user, score]) => {
+                        const rs = (score * 100).toFixed(1);
+                        const isCritical = score >= 0.8;
+                        const riskLevel = isCritical ? 'Critical' : 'High';
+                        const riskColor = isCritical ? 'var(--danger)' : '#f59e0b';
+                        const avatarColor = isCritical ? 'var(--danger)' : '#f59e0b';
+                        const icon = isCritical ? 'fa-user-ninja' : 'fa-user-lock';
+                        const borderTop = profileCount > 0 ? 'border-top: var(--glass-border); margin-top: 10px;' : '';
+                        profileCount++;
+                        
+                        profilesContainer.innerHTML += `
+                            <div class="actor-profile" style="${borderTop}">
+                                <div class="actor-avatar" style="border-color: ${avatarColor}; color: ${avatarColor}; box-shadow: 0 0 20px ${isCritical ? 'rgba(239, 68, 68, 0.2)' : 'rgba(245, 158, 11, 0.2)'};">
+                                    <i class="fa-solid ${icon}"></i>
+                                </div>
+                                <h3>Entity: "${user}"</h3>
+                                <p style="color: var(--text-secondary); font-size: 13px; margin-top: 8px; padding: 0 20px;">
+                                    Tracked entity demonstrating deviations from normal behavioral baselines. Activity logged and analyzed via SHAP.
+                                </p>
+                                <div class="actor-stats">
+                                    <div class="stat-box">
+                                        <span>Peak Risk Level</span>
+                                        <strong style="color: ${riskColor};">${riskLevel}</strong>
+                                    </div>
+                                    <div class="stat-box">
+                                        <span>Max Confidence</span>
+                                        <strong>${rs}%</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                } catch (error) {
+                    console.error('Error fetching intel data:', error);
+                }
+            }
+            
+            fetchIntel();
+            setInterval(fetchIntel, 5000); // Live reload every 5 sec
+        });
+    </script>
+</body>
+</html>

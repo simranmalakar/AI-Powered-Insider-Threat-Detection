@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Data - AI Insider Threat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .upload-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--panel-bg);
+            border: var(--glass-border);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 60px 20px;
+            margin: 30px 0;
+            background: rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            border-color: var(--accent-color);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+        }
+
+        .upload-text h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .upload-text p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-outline:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .file-info {
+            display: none;
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            text-align: left;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .file-info.visible {
+            display: flex;
+        }
+
+        .file-details {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        #loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(10, 15, 36, 0.8);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <h2 style="color: white; font-weight: 500;">Analyzing Data Pipeline...</h2>
+        <p style="color: var(--text-secondary); margin-top: 8px;">Running Autoencoder & Isolation Forest models</p>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fa-solid fa-shield-halved"></i>
+                <h2>Simran<span class="highlight">AI</span></h2>
+            </div>
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-item"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+                <a href="upload.html" class="nav-item active"><i class="fa-solid fa-file-csv"></i> Upload Data</a>
+                <a href="threat_intel.html" class="nav-item"><i class="fa-solid fa-user-secret"></i> Threat Intel</a>
+                <a href="relationships.html" class="nav-item"><i class="fa-solid fa-network-wired"></i> Relationships</a>
+                <a href="settings.html" class="nav-item"><i class="fa-solid fa-gear"></i> Settings</a>
+            </nav>
+            <div class="controls"></div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <button class="hamburger" id="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('active')">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="header-titles">
+                    <h1>Upload Custom Data</h1>
+                    <p>Import CSV logs to override the simulator and run custom AI inference</p>
+                </div>
+                <div class="user-profile">
+                    <a href="profile.html">
+                        <img src="https://ui-avatars.com/api/?name=Admin+User&background=0D8ABC&color=fff" alt="Profile" class="avatar" id="global-avatar">
+                    </a>
+                </div>
+            </header>
+
+            <section class="upload-container">
+                <h2>Analyze Custom Event Logs</h2>
+                <p style="color: var(--text-secondary); margin-top: 10px;">
+                    Upload a CSV containing user access, email, usb, and file events. Our machine learning models will automatically detect critical anomalies.
+                </p>
+
+                <div class="upload-area" id="drop-zone" onclick="document.getElementById('file-input').click()">
+                    <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                    <div class="upload-text">
+                        <h3>Drag & Drop your CSV file here</h3>
+                        <p>or click to browse from your computer</p>
+                    </div>
+                </div>
+                <input type="file" id="file-input" accept=".csv">
+
+                <div class="file-info" id="file-info">
+                    <div class="file-details">
+                        <i class="fa-solid fa-file-csv" style="font-size: 24px; color: var(--accent-color);"></i>
+                        <div>
+                            <div id="file-name" style="font-weight: 500;">filename.csv</div>
+                            <div id="file-size" style="font-size: 12px; color: var(--text-secondary);">0 KB</div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-xmark" style="cursor: pointer; color: var(--text-secondary);" onclick="clearFile(event)"></i>
+                </div>
+                
+                <div id="size-warning" style="display: none; background: rgba(255, 165, 0, 0.1); border: 1px solid orange; color: orange; padding: 12px; border-radius: 8px; margin-top: 16px; font-size: 14px; text-align: left;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> 
+                    <span id="warning-text">Large dataset detected.</span>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn-outline" onclick="downloadSample()">
+                        <i class="fa-solid fa-download"></i> Download Sample CSV
+                    </button>
+                    <button class="btn-primary" id="analyze-btn" style="padding: 12px 24px; width: auto; opacity: 0.5; pointer-events: none;" onclick="uploadAndAnalyze()">
+                        <i class="fa-solid fa-microchip"></i> Run Analysis
+                    </button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Global Avatar Sync
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedName = localStorage.getItem('userName');
+            if (savedName) {
+                const globalAvatar = document.getElementById('global-avatar');
+                if (globalAvatar) {
+                    globalAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(savedName)}&background=0D8ABC&color=fff`;
+                }
+            }
+        });
+
+        // Drag and Drop Logic
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const fileInfo = document.getElementById('file-info');
+        const analyzeBtn = document.getElementById('analyze-btn');
+        let selectedFile = null;
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            let dt = e.dataTransfer;
+            let files = dt.files;
+            handleFiles(files);
+        });
+
+        fileInput.addEventListener('change', function() {
+            handleFiles(this.files);
+        });
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.name.endsWith('.csv')) {
+                    selectedFile = file;
+                    document.getElementById('file-name').innerText = file.name;
+                    document.getElementById('file-size').innerText = (file.size / 1024).toFixed(2) + ' KB';
+                    fileInfo.classList.add('visible');
+                    dropZone.style.display = 'none';
+                    
+                    analyzeBtn.style.opacity = '1';
+                    analyzeBtn.style.pointerEvents = 'auto';
+                    
+                    // Dynamic Row Verification
+                    const chunkSize = 1024 * 50; // Read 50KB chunk
+                    const slice = file.slice(0, Math.min(file.size, chunkSize));
+                    slice.text().then(text => {
+                        const newlines = (text.match(/\n/g) || []).length;
+                        let estRows = file.size <= chunkSize ? newlines : Math.floor((file.size / chunkSize) * newlines);
+                        if (estRows > 100000) estRows = 100000; // backend cap
+                        
+                        if (estRows > 1000) {
+                            const waitMins = Math.ceil(estRows / 50000 * 1.5); // Very rough ETA (1.5 min per 50k rows)
+                            document.getElementById('size-warning').style.display = 'block';
+                            document.getElementById('warning-text').innerHTML = `<strong>High Volume Data Detected (~${estRows.toLocaleString()} rows).</strong><br/>The AI models will require approximately ${waitMins} - ${waitMins+1} minute(s) to finish analyzing. Please remain on this page while it processes.`;
+                        } else {
+                            document.getElementById('size-warning').style.display = 'none';
+                        }
+                    });
+                    
+                } else {
+                    alert('Please upload a valid .csv file');
+                }
+            }
+        }
+
+        function clearFile(e) {
+            e.stopPropagation();
+            selectedFile = null;
+            fileInput.value = '';
+            fileInfo.classList.remove('visible');
+            dropZone.style.display = 'block';
+            analyzeBtn.style.opacity = '0.5';
+            analyzeBtn.style.pointerEvents = 'none';
+        }
+
+        function downloadSample() {
+            const csvContent = "timestamp,user,department,role,event_type,details\n" +
+                "2023-10-27T10:00:00,User_1,Engineering,Engineer,login,Successful login from known IP\n" +
+                "2023-10-27T10:05:00,User_1,Engineering,Engineer,file_access,Accessed /confidential/source_code.py\n" +
+                "2023-10-27T11:15:00,User_2,HR,Recruiter,email,Sent 50MB attachment to external domain\n" +
+                "2023-10-27T11:20:00,User_2,HR,Recruiter,usb_connect,Connected unauthorized USB mass storage\n" +
+                "2023-10-27T12:00:00,User_3,Finance,Analyst,login,Failed login attempt 1\n" +
+                "2023-10-27T12:01:00,User_3,Finance,Analyst,login,Failed login attempt 2\n" +
+                "2023-10-27T12:05:00,User_3,Finance,Analyst,login,Successful login from offshore VPN\n" +
+                "2023-10-27T12:15:00,User_3,Finance,Analyst,file_access,Mass download of /finance/Q3_reports.pdf\n";
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "sample_insider_threat_data.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        async function uploadAndAnalyze() {
+            if (!selectedFile) return;
+
+            const API_BASE = 'http://localhost:8000/api';
+            document.getElementById('loading-overlay').style.display = 'flex';
+
+            const formData = new FormData();
+            formData.append("file", selectedFile);
+
+            try {
+                const response = await fetch(`${API_BASE}/upload_csv`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.status === 'success') {
+                    // Pipeline successful, redirect to dashboard to view results
+                    window.location.href = 'index.html';
+                } else {
+                    document.getElementById('loading-overlay').style.display = 'none';
+                    alert('Error: ' + (data.detail || 'Failed to process file. Ensure columns match the sample format.'));
+                }
+            } catch (error) {
+                document.getElementById('loading-overlay').style.display = 'none';
+                console.error('Upload error:', error);
+                alert('Connection error. Is the FastApi backend running?');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entity Relationships - AI Insider Threat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .full-graph-panel {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--panel-bg);
+            border: var(--glass-border);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            overflow: hidden;
+            min-height: 600px;
+        }
+
+        .graph-filters {
+            padding: 16px 24px;
+            border-bottom: var(--glass-border);
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active, .filter-btn:hover {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: var(--accent-color);
+            color: var(--text-primary);
+        }
+
+        .legend {
+            margin-left: auto;
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .graph-container-full {
+            flex-grow: 1;
+            position: relative;
+            background: #1a1a1a;
+        }
+
+        .graph-container-full iframe {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fa-solid fa-shield-halved"></i>
+                <h2>Simran<span class="highlight">AI</span></h2>
+            </div>
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-item"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+                <a href="upload.html" class="nav-item"><i class="fa-solid fa-file-csv"></i> Upload Data</a>
+                <a href="threat_intel.html" class="nav-item"><i class="fa-solid fa-user-secret"></i> Threat Intel</a>
+                <a href="relationships.html" class="nav-item active"><i class="fa-solid fa-network-wired"></i> Relationships</a>
+                <a href="settings.html" class="nav-item"><i class="fa-solid fa-gear"></i> Settings</a>
+            </nav>
+            <div class="controls">
+                <button class="btn-primary" onclick="window.location.href='index.html'">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content" style="display: flex; flex-direction: column; height: 100vh; padding-bottom: 32px;">
+            <header class="top-header" style="flex-shrink: 0;">
+                <button class="hamburger" id="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('active')">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="header-titles">
+                    <h1>Interactive Network Graph</h1>
+                    <p>Behavioral mapping of users, accessed files, USBs, and emails</p>
+                </div>
+                <div class="user-profile">
+                    <a href="profile.html">
+                        <img src="https://ui-avatars.com/api/?name=Admin+User&background=0D8ABC&color=fff" alt="Profile" class="avatar" id="global-avatar">
+                    </a>
+                </div>
+            </header>
+
+            <section class="full-graph-panel">
+                <div class="graph-filters">
+                    <button class="filter-btn active" id="btn-refresh"><i class="fa-solid fa-rotate-right"></i> All Activity</button>
+                    <!-- Mock buttons for UI aesthetics -->
+                    <button class="filter-btn" id="btn-filter-users"><i class="fa-solid fa-users"></i> Users Only</button>
+                    <button class="filter-btn" id="btn-filter-anomalies"><i class="fa-solid fa-triangle-exclamation"></i> Only Anomalies</button>
+                    
+                    <div class="legend">
+                        <div class="legend-item"><div class="dot" style="background: #4da6ff;"></div> Users</div>
+                        <div class="legend-item"><div class="dot" style="background: #ff9933;"></div> Files</div>
+                        <div class="legend-item"><div class="dot" style="background: #ff4d4d;"></div> USBs</div>
+                        <div class="legend-item"><div class="dot" style="background: #4dff4d;"></div> Emails</div>
+                        <div class="legend-item"><div class="dot" style="background: #ff0000; border-radius: 0; width: 20px; height: 3px;"></div> Anomalous Link</div>
+                    </div>
+                </div>
+                
+                <div class="graph-container-full">
+                    <iframe id="graph-iframe" src="" frameborder="0" width="100%" height="100%" style="display: none;"></iframe>
+                    <div id="graph-placeholder" class="placeholder">
+                        <i class="fa-solid fa-circle-notch fa-spin fa-3x" id="loading-spinner"></i>
+                        <p id="placeholder-text">Loading network graph...</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const iframe = document.getElementById('graph-iframe');
+            const placeholder = document.getElementById('graph-placeholder');
+            const spinner = document.getElementById('loading-spinner');
+            const placeholderText = document.getElementById('placeholder-text');
+            
+            const btnRefresh = document.getElementById('btn-refresh');
+            const btnUsers = document.getElementById('btn-filter-users');
+            const btnAnomalies = document.getElementById('btn-filter-anomalies');
+
+            let currentFilter = 'all';
+
+            function updateActiveButton(activeBtn) {
+                [btnRefresh, btnUsers, btnAnomalies].forEach(btn => btn.classList.remove('active'));
+                activeBtn.classList.add('active');
+            }
+
+            function loadGraph(filter) {
+                currentFilter = filter;
+                spinner.className = 'fa-solid fa-circle-notch fa-spin fa-3x';
+                placeholderText.innerText = 'Loading network graph...';
+                iframe.style.display = 'none';
+                placeholder.style.display = 'flex';
+
+                const url = `${API_BASE}/graph?filter=${filter}`;
+
+                fetch(url)
+                    .then(res => {
+                        if (res.ok) {
+                            iframe.src = `${url}&t=${new Date().getTime()}`;
+                            iframe.onload = () => {
+                                iframe.style.display = 'block';
+                                placeholder.style.display = 'none';
+                            };
+                        } else {
+                            throw new Error('Graph not generated yet.');
+                        }
+                    })
+                    .catch(e => {
+                        spinner.className = 'fa-solid fa-project-diagram fa-3x';
+                        placeholderText.innerText = 'No graph data available. Please run a simulation on the Dashboard first.';
+                    });
+            }
+
+            btnRefresh.addEventListener('click', () => {
+                updateActiveButton(btnRefresh);
+                loadGraph('all');
+            });
+
+            btnUsers.addEventListener('click', () => {
+                updateActiveButton(btnUsers);
+                loadGraph('users');
+            });
+
+            btnAnomalies.addEventListener('click', () => {
+                updateActiveButton(btnAnomalies);
+                loadGraph('anomalies');
+            });
+            
+            // Initial load
+            loadGraph('all');
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedName = localStorage.getItem('userName');
+            if (savedName) {
+                const globalAvatar = document.getElementById('global-avatar');
+                if (globalAvatar) {
+                    globalAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(savedName)}&background=0D8ABC&color=fff`;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
