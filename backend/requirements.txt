@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+pandas
+scikit-learn
+tensorflow
+shap
+networkx
+pyvis
+python-multiparttransformers
+lime
+tf-keras>=2.15.0
