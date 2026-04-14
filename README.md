@@ -1,4 +1,4 @@
-# Ai-Powered-Insider-Threat-Detection
+# AI-Powered-Insider-Threat-Detection
 This project presents an advanced insider threat detection system that combines continual learning, anomaly detection, explainable AI, and graph-based analytics to identify suspicious user behavior in real time.
 By leveraging state-of-the-art machine learning techniques including **Isolation Forests** and **Autoencoders**, alongside transparent **SHAP (SHapley Additive exPlanations)** explainability, this tool aims to spot lateral movement, data exfiltration, and compromised credentials before significant damage occurs.
 
